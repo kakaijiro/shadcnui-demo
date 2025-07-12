@@ -38,10 +38,13 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 
 const formSchema = z
   .object({
-    email: z.email(),
+    email: z.string().email(),
     accountType: z.enum(["personal", "company"]),
     companyName: z.string().optional(),
     numberOfEmployees: z.coerce.number().optional(),
@@ -62,6 +65,9 @@ const formSchema = z
       .regex(/[0-9]/, "Must contain a number")
       .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
     passwordConfirm: z.string(),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "You must accept the terms and conditions",
+    }),
   })
   .refine(
     (data) => {
@@ -114,16 +120,27 @@ const formSchema = z
 //   });
 
 export default function SignupPage() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const router = useRouter();
+  type FormData = z.infer<typeof formSchema>;
+
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
+      password: "",
+      passwordConfirm: "",
+      companyName: "",
+      numberOfEmployees: undefined,
+      accountType: "personal",
+      dob: undefined,
+      acceptTerms: false,
     },
   });
   // zodResolver() links zod and react-form
 
-  const handleSubmit = () => {
-    console.log("sign up form was validated legitimately");
+  const handleSubmit = (data: FormData) => {
+    console.log("sign up form was validated legitimately", data);
+    router.push("/dashboard");
   };
 
   const accountType = form.watch("accountType");
@@ -213,6 +230,7 @@ export default function SignupPage() {
                             min={0}
                             type="number"
                             {...field}
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -278,11 +296,7 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="••••••••"
-                        type="password"
-                        {...field}
-                      />
+                      <PasswordInput placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -295,12 +309,35 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Confirm password</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="••••••••"
-                        type="password"
-                        {...field}
-                      />
+                      <PasswordInput placeholder="••••••••" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="acceptTerms"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex gap-2 justify-start items-center">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel>I accept the terms and conditions</FormLabel>
+                    </div>
+                    <FormDescription>
+                      By signing up you agree to our{" "}
+                      <Link
+                        href="/terms"
+                        className="text-primary hover:underline"
+                      >
+                        terms and conditions
+                      </Link>
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
