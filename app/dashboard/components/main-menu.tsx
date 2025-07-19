@@ -4,11 +4,14 @@ import MenuItem from "./menu-item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import LightDarkToggle from "@/components/ui/light-dark-toggle";
+import { cn } from "@/lib/utils";
 
-export default function MainMenu() {
+export default function MainMenu({ className }: { className?: string }) {
   return (
-    <nav className="bg-muted overflow-auto p-4 flex flex-col">
-      <header className="pb-4">
+    <nav
+      className={cn(`md:bg-muted overflow-auto p-4 flex flex-col`, className)}
+    >
+      <header className="pb-4 hidden md:block">
         <MenuTitle />
       </header>
       <Separator />
